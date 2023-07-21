@@ -12,9 +12,14 @@ class App1Config(AppConfig):
     def ready(self):
         global driver
         if driver is None:
-            chrome_options = Options()
-            chrome_options.add_argument('--headless')
-            chrome_options.add_argument('--no-sandbox')
-            chrome_options.executable_path = 'frontend/app1/chromedriver.exe'
-            driver = webdriver.Chrome(options=chrome_options)
-            print("Driver Started")
+            print("[status] : Driver Intializing ..... ")
+            try:
+                chrome_options = Options()
+                # chrome_options.add_argument('--headless')
+                chrome_options.add_argument('--no-sandbox')
+                chrome_options.executable_path = 'frontend/app1/chromedriver.exe'
+                driver = webdriver.Chrome(options=chrome_options)
+            except Exception as e:
+                print(e)
+                
+            print("[status] : Driver initialised.")

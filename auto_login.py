@@ -3,7 +3,7 @@ from selenium.webdriver.common.by import By
 
 url = "https://internship.aicte-india.org/login_new.php"
 username = "chinmaypisal45@gmail.com"
-password = "chinmay123"
+password = "****"
 
 
 # def start_bot(**kwargs):

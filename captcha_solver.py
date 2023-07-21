@@ -51,7 +51,7 @@ def start_bot(**kwargs):
 
 url = "https://internship.aicte-india.org/login_new.php"
 username = "chinmaypisal45@gmail.com"
-password = "chinmay123"
+password = "****"
 start_bot(username=username, password=password, url=url)
 
 
