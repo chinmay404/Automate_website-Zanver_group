@@ -7,8 +7,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 import time
 
 url = "https://einvoice1.gst.gov.in/"
-username = "ACCURATESALE"
-password = "Accurate@1234"
+username = "ACCURATESALE#VIN"
+password = "Einvoice@1"
 
 
 def start_bot(**kwargs):
@@ -27,11 +27,11 @@ def start_bot(**kwargs):
     username_input = wait.until(EC.visibility_of_element_located(
         (By.CSS_SELECTOR, 'input#txtUserName.txtUserName')))
     username_input.clear()
-    username_input.send_keys("ACCURATESALE")
+    username_input.send_keys(username)
 
     password_input = driver.find_element(
         By.CSS_SELECTOR, 'input#txt_password.txtPassWord')
-    password_input.send_keys('Accurate@1234')
+    password_input.send_keys(password)
     print("Waiting For Captcha To solve.")
 
     print("Sleep timer start")

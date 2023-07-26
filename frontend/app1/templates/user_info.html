@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Change User Info</title>
+</head>
+
+<body>
+    <h1>Change User Info</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="new_username">New Username:</label>
+        <input type="text" name="new_username" required><br>
+        <label for="new_password">New Password:</label>
+        <input type="password" name="new_password" required><br>
+        <input type="submit" value="Change">
+    </form>
+</body>
+
+</html>

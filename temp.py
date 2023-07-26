@@ -9,8 +9,8 @@ def login_to_website():
     driver = selenium.webdriver.Chrome()
     driver.get("https://einvoice1.gst.gov.in/")
 
-    username = "ACCURATESALE"
-    password = "Accurate@1234"
+    username = "ACCURATESALE#VIN"
+    password = "Einvoice@1"
 
     login_button = driver.find_element(By.CSS_SELECTOR, "button#btnLogin.homepageloginbtn")
     login_button_clickable = EC.element_to_be_clickable(login_button)

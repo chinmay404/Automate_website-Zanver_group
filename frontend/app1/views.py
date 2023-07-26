@@ -12,11 +12,36 @@ from selenium.common.exceptions import NoSuchElementException
 from django.conf import settings
 from .bulk_upload import upload
 
+username = "ACCURATESALE#VIN"
+password = "Einvoice@1"
 
-global mian_url
 main_url = 'https://einvoice1.gst.gov.in/'
-global wait
 wait = WebDriverWait(driver, 5)
+
+
+def back_to_home():
+    try:
+        wait.until(EC.element_to_be_clickable(
+            (By.CSS_SELECTOR, 'a[href="/Home/MainMenu"]'))).click()
+    except Exception as e:
+        print(f"[X] Error during back_to_home: {e}")
+
+
+def change_user_info(request):
+    if request.method == 'POST':
+        new_username = request.POST.get('new_username')
+        new_password = request.POST.get('new_password')
+        # Validate the new_username and new_password if needed.
+
+        # Update the global username and password with the new values.
+        global username, password
+        username = new_username
+        password = new_password
+
+        # Redirect the user to the manual_login page to login with the new credentials.
+        return redirect('')
+
+    return render(request, 'user_info.html')
 
 
 def manual_login(request):
@@ -39,7 +64,7 @@ def manual_login(request):
         username_input = wait.until(EC.visibility_of_element_located(
             (By.CSS_SELECTOR, 'input#txtUserName.txtUserName')))
         username_input.clear()
-        username_input.send_keys("ACCURATESALE")
+        username_input.send_keys(username)
     except Exception as te:
         print(f"[status] : Timeout Exception - {te}")
         return False
@@ -49,7 +74,7 @@ def manual_login(request):
     try:
         password_input = driver.find_element(
             By.CSS_SELECTOR, 'input#txt_password.txtPassWord')
-        password_input.send_keys('Accurate@1234')
+        password_input.send_keys(password)
     except Exception as e:
         print(f"[status] : Exception during password input - {e}")
         return False
@@ -85,8 +110,12 @@ def manual_login(request):
 
 def auto_login(request):
     file_path = os.path.join(os.getcwd(), 'cookies.pkl')
-    with open(file_path, 'rb') as file:
-        cookies = pickle.load(file)
+    try:
+        with open(file_path, 'rb') as file:
+            cookies = pickle.load(file)
+    except FileNotFoundError as e:
+        print(f"[X] FileNotFoundError: {e}")
+        cookies = []
     driver.get(main_url)
     driver.delete_all_cookies()
     for cookie in cookies:
@@ -103,6 +132,7 @@ def auto_login(request):
 
     if login_button is None and login_successful:
         messages.success(request, 'Login successful.')
+        back_to_home()
         return redirect('home')
     else:
         # Login failed, stay on the index page
@@ -110,7 +140,7 @@ def auto_login(request):
         return render(request, 'index.html')
 
 
-def msi_report_download(driver):
+def msi_report_download():
     try:
         print("[status] Clicking MSI dropdown...")
         msi_dropdown = wait.until(EC.element_to_be_clickable(
@@ -128,14 +158,16 @@ def msi_report_download(driver):
         download_button = wait.until(EC.element_to_be_clickable(
             (By.CSS_SELECTOR, 'a.btn.btn-outline-info.btn-sm.btnnoloading')))
         download_button.click()
-
+        back_to_home()
         print("[status] Download Complete")
         return True
     except NoSuchElementException as e:
         print(f"[X] Element not found: {e}")
+        back_to_home()
         return False
     except Exception as e:
         print(f"[X] Error during MSI report download: {e}")
+        back_to_home()
         return False
 
 
@@ -156,7 +188,7 @@ def home_page(request):
         else:
             print(f"[status] : Selected files {selected_files}")
             upload(selected_files)
-            msi_report_download(driver)
+            msi_report_download()
 
     return render(request, 'home.html', {'files': files})
 
