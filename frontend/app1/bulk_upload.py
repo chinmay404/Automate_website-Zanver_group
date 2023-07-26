@@ -28,10 +28,14 @@ def upload(files):
             upload_button.click()
 
             print(f"Uploaded file: {file_path}")
+            break
     except Exception as e:
         print("File Upload Error")
         print(e)
         return False
 
-    print("All Files Uploaded.")
+    wait.until(EC.element_to_be_clickable(
+        (By.CSS_SELECTOR, 'a[href="/Home/MainMenu"]'))).click()
+    print("[status] Back To Home")
+
     return True

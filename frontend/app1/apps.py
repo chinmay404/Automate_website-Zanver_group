@@ -20,7 +20,15 @@ class App1Config(AppConfig):
                 chrome_options.add_argument('--no-sandbox')
                 chrome_options.add_argument('--disable-gpu')
                 chrome_options.add_argument('--disable-dev-shm-usage')
-                # Set window size using chrome_options
+                chrome_options.add_argument("--disable-popup-blocking")
+                chrome_options.add_argument(
+                    "--profile.default_content_settings.popups=0")
+                chrome_options.add_argument(
+                    "--profile.default_content_setting_values.automatic_downloads=1")
+                chrome_options.add_experimental_option("prefs", {
+                    "download.default_directory": "/home/sirius/All/zanver project/Automate_website-Zanver_group/excel data",
+                    "download.prompt_for_download": False,
+                })
                 chrome_options.add_argument('--window-size=1200,800')
 
                 # Custom Headers

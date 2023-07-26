@@ -1,8 +1,9 @@
+import os
+import pickle
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-import pickle
 import time
 
 url = "https://einvoice1.gst.gov.in/"
@@ -34,27 +35,23 @@ def start_bot(**kwargs):
     print("Waiting For Captcha To solve.")
 
     print("Sleep timer start")
-    time.sleep(10)
+    time.sleep(20)
     login_button = driver.find_element(
         By.CSS_SELECTOR, 'button.btn.btn-primary.btn-block.btnlogin')
     login_button.click()
 
     cookies = driver.get_cookies()
-    with open('cookies.pkl', 'wb') as file:
+    file_path = '/home/sirius/All/zanver project/Automate_website-Zanver_group/frontend/'
+
+    # Use os.path.join to construct the complete file path
+    file_name = 'cookies.pkl'
+    file_location = os.path.join(file_path, file_name)
+
+    with open(file_location, 'wb') as file:
         pickle.dump(cookies, file)
 
     # Check the expiry time of each cookie and print it
     print("Cookie Expiry Times:")
-    for cookie in cookies:
-        print(f"Cookie Name: {cookie['name']}")
-        if 'expiry' in cookie:
-            print(f"Expires: {cookie['expiry']}")
-            print(f"Is Expired: {time.time() > cookie['expiry']}")
-        else:
-            print("Cookie does not have an explicit expiry time.")
-        print("-------------------------")
+
 
 start_bot(username=username, password=password, url=url)
-
-
-
