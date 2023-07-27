@@ -8,7 +8,7 @@ import os
 import base64
 import pickle
 from django.contrib import messages
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from django.conf import settings
 from .bulk_upload import upload
 
@@ -16,7 +16,7 @@ username = "ACCURATESALE#VIN"
 password = "Einvoice@1"
 
 main_url = 'https://einvoice1.gst.gov.in/'
-wait = WebDriverWait(driver, 5)
+wait = WebDriverWait(driver, 10)
 
 
 def back_to_home():
@@ -50,40 +50,43 @@ def manual_login(request):
     print("[status] Got the url")
 
     try:
+        # Wait for the login button to be clickable, and then click it
         login_button = wait.until(EC.element_to_be_clickable(
             (By.CSS_SELECTOR, 'button#btnLogin.homepageloginbtn')))
         login_button.click()
         print("[status] : Login Button Clicked")
-    except Exception as te:
-        print(f"[status] : Timeout Exception - {te}")
+    except TimeoutException:
+        print("[status] : Timeout waiting for the login button to be clickable")
         return False
-    except Exception as e:
-        print(f"[status] : Exception during login - {e}")
-        return False
+
     try:
+        # Wait for the username input element to be visible, and then send keys
         username_input = wait.until(EC.visibility_of_element_located(
             (By.CSS_SELECTOR, 'input#txtUserName.txtUserName')))
         username_input.clear()
         username_input.send_keys(username)
-    except Exception as te:
-        print(f"[status] : Timeout Exception - {te}")
+    except TimeoutException:
+        print("[status] : Timeout waiting for the username input element to be visible")
         return False
-    except Exception as e:
-        print(f"[status] : Exception during username input - {e}")
-        return False
+
     try:
-        password_input = driver.find_element(
-            By.CSS_SELECTOR, 'input#txt_password.txtPassWord')
+        # Wait for the password input element to be visible, and then send keys
+        password_input = wait.until(EC.visibility_of_element_located(
+            (By.CSS_SELECTOR, 'input#txt_password.txtPassWord')))
         password_input.send_keys(password)
-    except Exception as e:
-        print(f"[status] : Exception during password input - {e}")
+    except TimeoutException:
+        print("[status] : Timeout waiting for the password input element to be visible")
         return False
+
     try:
-        captcha_image_element = driver.find_element(By.ID, 'captcha_image')
+        # Wait for the captcha image element to be present, then take a screenshot and encode it to base64
+        captcha_image_element = wait.until(
+            EC.presence_of_element_located((By.ID, 'captcha_image')))
         screenshot = captcha_image_element.screenshot_as_png
         captcha_image_base64 = base64.b64encode(screenshot).decode('utf-8')
     except NoSuchElementException:
         captcha_image_base64 = None
+
     if request.method == 'POST':
         captcha_input = request.POST.get('captcha_input')
         print(f"[status] Captcha : {captcha_input}")
@@ -105,6 +108,7 @@ def manual_login(request):
 
             except NoSuchElementException:
                 pass
+
     return render(request, 'manual_login.html', {'captcha_image_base64': captcha_image_base64})
 
 
@@ -116,14 +120,17 @@ def auto_login(request):
     except FileNotFoundError as e:
         print(f"[X] FileNotFoundError: {e}")
         cookies = []
+
     driver.get(main_url)
     driver.delete_all_cookies()
     for cookie in cookies:
         driver.add_cookie(cookie)
+
     previous_url = driver.current_url
-    driver.get('https://einvoice1.gst.gov.in/UserAccount/TechPersonContacts')
+    driver.get('https://einvoice1.gst.gov.in/Home/MainMenu')
     current_url = driver.current_url
     login_successful = current_url != previous_url
+
     try:
         login_button = driver.find_element(
             By.CSS_SELECTOR, 'button.btn.btn-primary.btn-block.btnlogin')
@@ -136,25 +143,52 @@ def auto_login(request):
         return redirect('home')
     else:
         # Login failed, stay on the index page
+        print("[status] Cookies Expired 'Collect New cookies'")
         messages.error(request, 'Login failed. Try Manual Login')
         return render(request, 'index.html')
 
 
 def msi_report_download():
     try:
-        print("[status] Clicking MSI dropdown...")
         msi_dropdown = wait.until(EC.element_to_be_clickable(
             (By.CSS_SELECTOR, 'a.btn.btn-link.parentmenu[data-toggle="collapse"][href="#collapseFour"]')))
         msi_dropdown.click()
+        print("[status] Clickied MSI dropdown...")
+    except NoSuchElementException as e:
+        print(f"[X] Element not found while clicking MSI dropdown: {e}")
+        back_to_home()
+        return False
+    except TimeoutException as e:
+        print(f"[X] Timeout while waiting for MSI dropdown: {e}")
+        back_to_home()
+        return False
+
+    try:
         msi_dropdown = wait.until(EC.element_to_be_clickable(
             (By.CSS_SELECTOR, 'a[href="/MisRpt"]')))
         msi_dropdown.click()
-        print("[status] Clicking Go button...")
-        go_button = wait.until(EC.element_to_be_clickable(
-            (By.ID, 'btngo')))
-        go_button.click()
+    except NoSuchElementException as e:
+        print(f"[X] Element not found while clicking MSI report: {e}")
+        back_to_home()
+        return False
+    except TimeoutException as e:
+        print(f"[X] Timeout while waiting for MSI report: {e}")
+        back_to_home()
+        return False
 
-        print("[status] Clicking Download button...")
+    try:
+        go_button = wait.until(EC.element_to_be_clickable((By.ID, 'btngo')))
+        go_button.click()
+    except NoSuchElementException as e:
+        print(f"[X] Element not found while clicking Go button: {e}")
+        back_to_home()
+        return False
+    except TimeoutException as e:
+        print(f"[X] Timeout while waiting for Go button: {e}")
+        back_to_home()
+        return False
+
+    try:
         download_button = wait.until(EC.element_to_be_clickable(
             (By.CSS_SELECTOR, 'a.btn.btn-outline-info.btn-sm.btnnoloading')))
         download_button.click()
@@ -162,7 +196,11 @@ def msi_report_download():
         print("[status] Download Complete")
         return True
     except NoSuchElementException as e:
-        print(f"[X] Element not found: {e}")
+        print(f"[X] Element not found while clicking Download button: {e}")
+        back_to_home()
+        return False
+    except TimeoutException as e:
+        print(f"[X] Timeout while waiting for Download button: {e}")
         back_to_home()
         return False
     except Exception as e:
@@ -180,6 +218,7 @@ def home_page(request):
     file_names = os.listdir(json_files_dir)
     files = [os.path.join(json_files_dir, file_name)
              for file_name in file_names]
+
     if request.method == 'POST':
         selected_files = request.POST.getlist('selected_files')
         if not selected_files:
