@@ -16,7 +16,10 @@ username = "ACCURATESALE#VIN"
 password = "Einvoice@1"
 
 main_url = 'https://einvoice1.gst.gov.in/'
-wait = WebDriverWait(driver, 10)
+wait = WebDriverWait(driver, 5)
+
+
+
 
 
 def back_to_home():
@@ -31,14 +34,9 @@ def change_user_info(request):
     if request.method == 'POST':
         new_username = request.POST.get('new_username')
         new_password = request.POST.get('new_password')
-        # Validate the new_username and new_password if needed.
-
-        # Update the global username and password with the new values.
         global username, password
         username = new_username
         password = new_password
-
-        # Redirect the user to the manual_login page to login with the new credentials.
         return redirect('')
 
     return render(request, 'user_info.html')
@@ -226,8 +224,15 @@ def home_page(request):
                 request, 'No files selected. Please select at least one file.')
         else:
             print(f"[status] : Selected files {selected_files}")
-            upload(selected_files)
-            msi_report_download()
+            upload_status = upload(selected_files)
+            if upload_status == 'upload_positive':
+                msi_report_download()
+            elif upload_status == 'not_loggedin':
+                # Add message of logged out from site
+                return redirect('homepage')
+            else :
+                return HttpResponse("File Upload Error")
+                
 
     return render(request, 'home.html', {'files': files})
 

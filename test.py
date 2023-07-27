@@ -50,7 +50,7 @@ def start_bot(**kwargs):
 
     with open(file_location, 'wb') as file:
         pickle.dump(cookies, file)
-    upload_files(driver, '/home/sirius/All/zanver project/Automate_website-Zanver_group/frontend/static/json_data/E-INVOICE_V1_JSON - 2023-07-19T142401.713(2).json')
+    # upload_files(driver, '/home/sirius/All/zanver project/Automate_website-Zanver_group/frontend/static/json_data/E-INVOICE_V1_JSON - 2023-07-19T142401.713(2).json')
     # Check the expiry time of each cookie and print it
     print("Cookie Expiry Times:")
 

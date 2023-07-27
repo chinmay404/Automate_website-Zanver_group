@@ -9,68 +9,72 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 
 wait = WebDriverWait(driver, 5)
+menu_url = 'https://einvoice1.gst.gov.in/Home/MainMenu'
 
 def upload(files):
-    
-    # Close any alert modal if present
-    try:
-        close_button = wait.until(EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, 'button[data-dismiss="modal"]')))
-        driver.execute_script("arguments[0].click();", close_button)
-        print("[status] Modal closed")
-    except TimeoutException:
-        print("[status] No alert modal")
-        pass
+    current_url = driver.current_url
+    if current_url == 'https://einvoice1.gst.gov.in/Invoice/BulkUpload' or current_url == menu_url:
+        # Close any alert modal if present
+        try:
+            close_button = wait.until(EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, 'button[data-dismiss="modal"]')))
+            driver.execute_script("arguments[0].click();", close_button)
+            print("[status] Modal closed")
+        except TimeoutException:
+            print("[status] No alert modal")
+            pass
 
-    try:
-        btn_exit = wait.until(EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, '.btn-danger')))
-        btn_exit.click()
-        print("[status] Exit Button clicked")
-    except TimeoutException:
-        print("[status] No alert modal ")
-        pass
+        try:
+            btn_exit = wait.until(EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, '.btn-danger')))
+            btn_exit.click()
+            print("[status] Exit Button clicked")
+        except TimeoutException:
+            print("[status] No alert modal ")
+            pass
 
 
-    # Navigate to bulk upload
-    try:
-        element = wait.until(EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, 'a.btn.btn-link.parentmenu')))
-        element.click()
-        print("[status] Dropdown clicked")
-    except TimeoutException:
-        print("[status] Failed to click on the element")
-        return False
+        # Navigate to bulk upload
+        try:
+            element = wait.until(EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, 'a.btn.btn-link.parentmenu')))
+            element.click()
+            print("[status] Dropdown clicked")
+        except TimeoutException:
+            print("[status] Failed to click on the element")
+            return "upload_negaitive"
 
-    try:
-        btn_bulk_upload = wait.until(EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, 'a[href="/Invoice/BulkUpload"]')))
-        btn_bulk_upload.click()
-        print("[status] Bulk upload clicked")
-    except TimeoutException:
-        print("[status] Failed to click on bulk upload button")
-        return False
+        try:
+            btn_bulk_upload = wait.until(EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, 'a[href="/Invoice/BulkUpload"]')))
+            btn_bulk_upload.click()
+            print("[status] Bulk upload clicked")
+        except TimeoutException:
+            print("[status] Failed to click on bulk upload button")
+            return "upload_negaitive"
 
-    try:
-        file_input = driver.find_element(By.ID, 'JsonFile')
-        for file in files:
-            file_input.send_keys(file)
+        try:
+            file_input = driver.find_element(By.ID, 'JsonFile')
+            for file in files:
+                file_input.send_keys(file)
 
-            upload_button = driver.find_element(By.ID, "uploadBtn")
-            upload_button.click()
+                upload_button = driver.find_element(By.ID, "uploadBtn")
+                upload_button.click()
 
-            print(f"Uploaded file: {file}")
-    except Exception as e:
-        print("File Upload Error")
-        print(e)
-        return False
+                print(f"Uploaded file: {file}")
+        except Exception as e:
+            print("File Upload Error")
+            print(e)
+            return "upload_negaitive"
 
-    # Go back to home after successful upload
-    try:
-        wait.until(EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, 'a[href="/Home/MainMenu"]'))).click()
-        print("[status] Back To Home")
-    except TimeoutException as e:
-        print("[status] Failed to go back to home")
+        # Go back to home after successful upload
+        try:
+            wait.until(EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, 'a[href="/Home/MainMenu"]'))).click()
+            print("[status] Back To Home")
+        except TimeoutException as e:
+            print("[status] Failed to go back to home")
 
-    return True
+        return "upload_positive"
+    else :
+        return "not_loggedin"
