@@ -4,7 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-import time
+import time ,base64
 from selenium.common.exceptions import TimeoutException
 
 url = "https://einvoice1.gst.gov.in/"
@@ -36,10 +36,24 @@ def start_bot(**kwargs):
     print("Waiting For Captcha To solve.")
 
     print("Sleep timer start")
-    time.sleep(20)
+    captcha_image_element = wait.until(
+            EC.presence_of_element_located((By.ID, 'captcha_image')))
+    screenshot = captcha_image_element.screenshot_as_png
+    captcha_image_base64 = base64.b64encode(screenshot).decode('utf-8')
+    # time.sleep(20)
+    captcha = input("Enter Captcha")
+    captcha_input_element = driver.find_element(
+                    By.ID, 'CaptchaCode')
+    time.sleep(3)
+    for w in captcha:
+        captcha_input_element.send_keys(w)
     login_button = driver.find_element(
-        By.CSS_SELECTOR, 'button.btn.btn-primary.btn-block.btnlogin')
+                    By.CSS_SELECTOR, 'button.btn.btn-primary.btn-block.btnlogin')
+    time.sleep(1)
     login_button.click()
+    # login_button = driver.find_element(
+    #     By.CSS_SELECTOR, 'button.btn.btn-primary.btn-block.btnlogin')
+    # login_button.click()
 
     cookies = driver.get_cookies()
     file_path = '/home/sirius/All/zanver project/Automate_website-Zanver_group/frontend/'
