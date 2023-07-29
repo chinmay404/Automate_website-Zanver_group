@@ -26,7 +26,7 @@ class App1Config(AppConfig):
                 chrome_options.add_argument(
                     "--profile.default_content_setting_values.automatic_downloads=1")
                 chrome_options.add_experimental_option("prefs", {
-                    "download.default_directory": "/home/sirius/All/zanver project/Automate_website-Zanver_group/excel data",
+                    "download.default_directory": "/home/sirius/All/zanver project/Automate_website-Zanver_group/excel data",# CHANGE THE PATH TO DOWNLOAD EXCEL FILE EVERY TIME 
                     "download.prompt_for_download": False,
                 })
                 chrome_options.add_argument('--window-size=1200,800')
