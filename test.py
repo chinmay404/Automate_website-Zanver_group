@@ -1,3 +1,7 @@
+
+# TEST FILE NOT IMP
+
+
 import os
 import pickle
 from selenium import webdriver
@@ -8,8 +12,8 @@ import time ,base64
 from selenium.common.exceptions import TimeoutException
 
 url = "https://einvoice1.gst.gov.in/"
-username = "ACCURATESALE#VIN"
-password = "Einvoice@1"
+username = ""
+password = ""
 
 
 def start_bot(**kwargs):
