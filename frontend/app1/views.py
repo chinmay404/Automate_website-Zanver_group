@@ -1,3 +1,4 @@
+# views.py
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from app1.apps import driver
@@ -29,12 +30,7 @@ def back_to_home():
 
 
 def logged_status():
-    current_url = driver.current_url
-    if current_url is not main_url:
-        return True
-    else :
-        return False
-    
+    return driver.current_url != main_url
 
 
 def change_user_info(request):
@@ -65,68 +61,66 @@ def manual_login(request):
                 login_button = driver.find_element(
                     By.CSS_SELECTOR, 'button.btn.btn-primary.btn-block.btnlogin')
                 login_button.click()
-                print('[status] Login Succesful')
+                print('[status] Login Successful')
                 cookies = driver.get_cookies()
+
                 # Save the cookies to a cookies.pkl file in the static folder
-                cookies_file_path = os.path.join('static', 'cookies.pkl')
+                cookies_file_path = os.path.join(settings.STATICFILES_DIRS[0], 'cookies.pkl')
                 with open(cookies_file_path, 'wb') as f:
                     pickle.dump(cookies, f)
 
-                # Wait for the login process to complete before proceeding
-                # wait.until(EC.presence_of_element_located((By.ID, 'some_element_that_appears_after_login')))
-
                 # At this point, the login should be successful, and you can redirect the user or perform other actions.
+                return redirect('home')
 
             except NoSuchElementException:
                 pass
-        return redirect('home')
-    else:
-        # This is the first page with Auto Login and Manual Login buttons
-        print("[status] Request To get url")
-        driver.get(main_url)
-        print("[status] Got the url")
 
-        try:
-            # Wait for the login button to be clickable, and then click it
-            login_button = wait.until(EC.element_to_be_clickable(
-                (By.CSS_SELECTOR, 'button#btnLogin.homepageloginbtn')))
-            login_button.click()
-            print("[status] : Login Button Clicked")
-        except TimeoutException:
-            print("[status] : Timeout waiting for the login button to be clickable")
-            return False
+    # This is the first page with Auto Login and Manual Login buttons
+    print("[status] Request To get url")
+    driver.get(main_url)
+    print("[status] Got the url")
 
-        try:
-            # Wait for the username input element to be visible, and then send keys
-            username_input = wait.until(EC.visibility_of_element_located(
-                (By.CSS_SELECTOR, 'input#txtUserName.txtUserName')))
-            username_input.clear()
-            username_input.send_keys(username)
-        except TimeoutException:
-            print(
-                "[status] : Timeout waiting for the username input element to be visible")
-            return False
+    try:
+        # Wait for the login button to be clickable, and then click it
+        login_button = wait.until(EC.element_to_be_clickable(
+            (By.CSS_SELECTOR, 'button#btnLogin.homepageloginbtn')))
+        login_button.click()
+        print("[status] : Login Button Clicked")
+    except TimeoutException:
+        print("[status] : Timeout waiting for the login button to be clickable")
+        return False
 
-        try:
-            # Wait for the password input element to be visible, and then send keys
-            password_input = wait.until(EC.visibility_of_element_located(
-                (By.CSS_SELECTOR, 'input#txt_password.txtPassWord')))
-            password_input.send_keys(password)
-        except TimeoutException:
-            print(
-                "[status] : Timeout waiting for the password input element to be visible")
-            return False
+    try:
+        # Wait for the username input element to be visible, and then send keys
+        username_input = wait.until(EC.visibility_of_element_located(
+            (By.CSS_SELECTOR, 'input#txtUserName.txtUserName')))
+        username_input.clear()
+        username_input.send_keys(username)
+    except TimeoutException:
+        print(
+            "[status] : Timeout waiting for the username input element to be visible")
+        return False
 
-        try:
-            # Wait for the captcha image element to be present, then take a screenshot and encode it to base64
-            captcha_image_element = wait.until(
-                EC.presence_of_element_located((By.ID, 'captcha_image')))
-            screenshot = captcha_image_element.screenshot_as_png
-            captcha_image_base64 = base64.b64encode(screenshot).decode('utf-8')
-        except NoSuchElementException:
-            captcha_image_base64 = None
+    try:
+        # Wait for the password input element to be visible, and then send keys
+        password_input = wait.until(EC.visibility_of_element_located(
+            (By.CSS_SELECTOR, 'input#txt_password.txtPassWord')))
+        password_input.send_keys(password)
+    except TimeoutException:
+        print(
+            "[status] : Timeout waiting for the password input element to be visible")
+        return False
 
-        return render(request, 'manual_login.html', {'captcha_image_base64': captcha_image_base64})
+    try:
+        # Wait for the captcha image element to be present, then take a screenshot and encode it to base64
+        captcha_image_element = wait.until(
+            EC.presence_of_element_located((By.ID, 'captcha_image')))
+        screenshot = captcha_image_element.screenshot_as_png
+        captcha_image_base64 = base64.b64encode(screenshot).decode('utf-8')
+    except NoSuchElementException:
+        captcha_image_base64 = None
+
+    return render(request, 'manual_login.html', {'captcha_image_base64': captcha_image_base64})
 
 
 def auto_login(request):
@@ -171,7 +165,7 @@ def msi_report_download():
         msi_dropdown = wait.until(EC.element_to_be_clickable(
             (By.CSS_SELECTOR, 'a.btn.btn-link.parentmenu[data-toggle="collapse"][href="#collapseFour"]')))
         msi_dropdown.click()
-        print("[status] Clickied MSI dropdown...")
+        print("[status] Clicked MSI dropdown...")
     except NoSuchElementException as e:
         print(f"[X] Element not found while clicking MSI dropdown: {e}")
         back_to_home()
@@ -249,7 +243,7 @@ def home_page(request):
                 msi_report_download()
             elif upload_status == 'not_loggedin':
                 # Add message of logged out from site
-                return redirect('homepage')
+                return redirect('home')
             else:
                 return HttpResponse("File Upload Error")
 
