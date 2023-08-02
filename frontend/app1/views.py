@@ -33,53 +33,7 @@ def logged_status():
     return driver.current_url != main_url
 
 
-def change_user_info(request):
-    if request.method == 'POST':
-        new_username = request.POST.get('new_username')
-        new_password = request.POST.get('new_password')
-        global username, password
-        username = new_username
-        password = new_password
-        return redirect('')
-
-    return render(request, 'user_info.html')
-
-
-def manual_login(request):
-    if request.method == 'POST' and 'captcha_input' in request.POST:
-        # This is the manual_login page POST request
-        captcha_input = request.POST['captcha_input']
-        print(f"[status] Captcha : {captcha_input}")
-        if captcha_input:
-            try:
-                captcha_input_element = driver.find_element(
-                    By.ID, 'CaptchaCode')
-                time.sleep(3)
-                captcha_input_element.clear()  # Clear the captcha input field
-                captcha_input_element.send_keys(captcha_input)
-
-                login_button = driver.find_element(
-                    By.CSS_SELECTOR, 'button.btn.btn-primary.btn-block.btnlogin')
-                login_button.click()
-                print('[status] Login Successful')
-                cookies = driver.get_cookies()
-
-                # Save the cookies to a cookies.pkl file in the static folder
-                cookies_file_path = os.path.join(settings.STATICFILES_DIRS[0], 'cookies.pkl')
-                with open(cookies_file_path, 'wb') as f:
-                    pickle.dump(cookies, f)
-
-                # At this point, the login should be successful, and you can redirect the user or perform other actions.
-                return redirect('home')
-
-            except NoSuchElementException:
-                pass
-
-    # This is the first page with Auto Login and Manual Login buttons
-    print("[status] Request To get url")
-    driver.get(main_url)
-    print("[status] Got the url")
-
+def send_keys():
     try:
         # Wait for the login button to be clickable, and then click it
         login_button = wait.until(EC.element_to_be_clickable(
@@ -111,6 +65,75 @@ def manual_login(request):
             "[status] : Timeout waiting for the password input element to be visible")
         return False
 
+
+def change_user_info(request):
+    if request.method == 'POST':
+        new_username = request.POST.get('new_username')
+        new_password = request.POST.get('new_password')
+        global username, password
+        username = new_username
+        password = new_password
+        return redirect('')
+
+    return render(request, 'user_info.html')
+
+
+def manual_login(request):
+    if request.method == 'POST' and 'captcha_input' in request.POST:
+        # This is the manual_login page POST request
+        captcha_input = request.POST['captcha_input']
+        print(f"[status] Captcha : {captcha_input}")
+        if captcha_input:
+            try:
+                captcha_input_element = driver.find_element(
+                    By.ID, 'CaptchaCode')
+                time.sleep(3)
+                captcha_input_element.clear()  # Clear the captcha input field
+                captcha_input_element.send_keys(captcha_input)
+
+                login_button = driver.find_element(
+                    By.CSS_SELECTOR, 'button.btn.btn-primary.btn-block.btnlogin')
+                login_button.click()
+                # Give some time to check if the login was successful
+                time.sleep(2)
+                current_url = driver.current_url
+
+                # Check if the login was successful by checking the URL after login
+                if current_url == 'https://einvoice1.gst.gov.in/Home/MainMenu':
+                    print('[status] Login Successful')
+                    cookies = driver.get_cookies()
+
+                    # Save the cookies to a cookies.pkl file in the static folder
+                    cookies_file_path = os.path.join(
+                        settings.STATICFILES_DIRS[0], 'cookies.pkl')
+                    with open(cookies_file_path, 'wb') as f:
+                        pickle.dump(cookies, f)
+
+                    # At this point, the login should be successful, and you can redirect the user or perform other actions.
+                    return redirect('home')
+
+                else:
+                    # Login failed due to invalid captcha, get a new captcha and display it to the user
+                    send_keys()
+                    try:
+                        captcha_input_element = wait.until(
+                            EC.presence_of_element_located((By.ID, 'captcha_image')))
+                        screenshot = captcha_input_element.screenshot_as_png
+                        captcha_image_base64 = base64.b64encode(
+                            screenshot).decode('utf-8')
+                    except NoSuchElementException:
+                        captcha_image_base64 = None
+
+                    return render(request, 'manual_login.html', {'captcha_image_base64': captcha_image_base64, 'error_message': 'Invalid Captcha'})
+
+            except NoSuchElementException:
+                pass
+
+    # This is the first page with Auto Login and Manual Login buttons
+    print("[status] Request To get url")
+    driver.get(main_url)
+    print("[status] Got the url")
+    send_keys()
     try:
         # Wait for the captcha image element to be present, then take a screenshot and encode it to base64
         captcha_image_element = wait.until(
