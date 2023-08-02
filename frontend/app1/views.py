@@ -14,10 +14,11 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from django.conf import settings
 from .bulk_upload import upload
 
-username = "" #ADD USERAME HERE
-password = "" # ADD PASSWORD HERE
+username = "ACCURATESALE#VIN"  # ADD USERAME HERE
+password = "Einvoice@1"  # ADD PASSWORD HERE
 
 main_url = 'https://einvoice1.gst.gov.in/'
+deafult_selenium_url = 'data:,'
 wait = WebDriverWait(driver, 5)
 
 
@@ -30,7 +31,7 @@ def back_to_home():
 
 
 def logged_status():
-    return driver.current_url != main_url
+    return driver.current_url != main_url and driver.current_url != deafult_selenium_url
 
 
 def send_keys():
@@ -174,6 +175,7 @@ def auto_login(request):
 
     if login_button is None and login_successful:
         messages.success(request, 'Login successful.')
+        print("[status] Login Successful")
         back_to_home()
         return redirect('home')
     else:
@@ -254,21 +256,50 @@ def home_page(request):
     files = [os.path.join(json_files_dir, file_name)
              for file_name in file_names]
 
-    if request.method == 'POST':
-        selected_files = request.POST.getlist('selected_files')
-        if not selected_files:
-            messages.warning(
-                request, 'No files selected. Please select at least one file.')
-        else:
-            print(f"[status] : Selected files {selected_files}")
-            upload_status = upload(selected_files)
-            if upload_status == 'upload_positive':
-                msi_report_download()
-            elif upload_status == 'not_loggedin':
-                # Add message of logged out from site
-                return redirect('home')
+    # Check if the user is already logged in using the driver
+    if logged_status():
+        print("[status] User is already logged in using the driver.")
+        # Proceed with file upload
+        if request.method == 'POST':
+            selected_files = request.POST.getlist('selected_files')
+            if not selected_files:
+                messages.warning(
+                    request, 'No files selected. Please select at least one file.')
             else:
-                return HttpResponse("File Upload Error")
+                print(f"[status] : Selected files {selected_files}")
+                upload_status = upload(selected_files)
+                if upload_status == 'upload_positive':
+                    msi_report_download()
+                elif upload_status == 'not_loggedin':
+                    return redirect('home')
+                else:
+                    return HttpResponse("File Upload Error")
+
+    else:
+        # User is not logged in using the driver, try auto_login
+        auto_login_result = auto_login(request)
+        if auto_login_result:
+            # If auto_login was successful, proceed with file upload
+            if request.method == 'POST':
+                selected_files = request.POST.getlist('selected_files')
+                if not selected_files:
+                    messages.warning(
+                        request, 'No files selected. Please select at least one file.')
+                else:
+                    print(f"[status] : Selected files {selected_files}")
+                    upload_status = upload(selected_files)
+                    if upload_status == 'upload_positive':
+                        msi_report_download()
+                    elif upload_status == 'not_loggedin':
+                        # Add message of logged out from site
+                        return redirect('home')
+                    else:
+                        return HttpResponse("File Upload Error")
+
+        else:
+            # auto_login failed, proceed with manual_login
+            print("[status] auto_login failed, proceeding with manual_login.")
+            return manual_login(request)
 
     return render(request, 'home.html', {'files': files})
 

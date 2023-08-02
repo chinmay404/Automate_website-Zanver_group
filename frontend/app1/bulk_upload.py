@@ -8,7 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 
-wait = WebDriverWait(driver, 5)
+wait = WebDriverWait(driver, 3)
 menu_url = 'https://einvoice1.gst.gov.in/Home/MainMenu'
 
 def upload(files):
