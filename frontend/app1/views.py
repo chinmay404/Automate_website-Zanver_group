@@ -14,8 +14,8 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from django.conf import settings
 from .bulk_upload import upload
 
-username = "ACCURATESALE#VIN"  # ADD USERAME HERE
-password = "Einvoice@1"  # ADD PASSWORD HERE
+username = ""  # ADD USERAME HERE
+password = ""  # ADD PASSWORD HERE
 
 main_url = 'https://einvoice1.gst.gov.in/'
 deafult_selenium_url = 'data:,'
