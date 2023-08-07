@@ -42,7 +42,7 @@ To get started with the application, follow these steps:
 1. Clone the repository:
 
    ```
-   git clone https://github.com/your-username/automate-website.git
+   git clone https://github.com/chinmay404/Automate_website-Zanver_group
    cd automate-website
    ```
 
